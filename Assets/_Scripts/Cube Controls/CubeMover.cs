@@ -16,8 +16,29 @@ public class CubeMover : MonoBehaviour
     private Coroutine moveCoroutine;
     public bool isMoving => moveCoroutine != null;
 
-    [SerializeField] private Transform[] vectors;
+    private Vector3? rotationAxis
+    {
+        get
+        {
+            if (normal == null) return null;
+
+            if (normal == Axis.X) return GetRotationAxis(rubiksCube.transform.up, rubiksCube.transform.forward);
+
+            if (normal == Axis.Y) return GetRotationAxis(rubiksCube.transform.right, rubiksCube.transform.forward);
+
+            if (normal == Axis.Z) return GetRotationAxis(rubiksCube.transform.right, rubiksCube.transform.up);
+
+            return null;
+        }
+    }
+
+
     private void Update()
+    {
+        HandleMovement();
+    }
+
+    private void HandleMovement()
     {
         if (isMoving)
         {
@@ -46,22 +67,6 @@ public class CubeMover : MonoBehaviour
             var moveInfo = GetMoveInfo(targetCubie, rotAxis.Value, _axis.Value);
             
             moveCoroutine = StartCoroutine(Move_Co(moveInfo));
-        }
-    }
-
-    private Vector3? rotationAxis
-    {
-        get
-        {
-            if (normal == null) return null;
-
-            if (normal == Axis.X) return GetRotationAxis(rubiksCube.transform.up, rubiksCube.transform.forward);
-
-            if (normal == Axis.Y) return GetRotationAxis(rubiksCube.transform.right, rubiksCube.transform.forward);
-
-            if (normal == Axis.Z) return GetRotationAxis(rubiksCube.transform.right, rubiksCube.transform.up);
-
-            return null;
         }
     }
 
@@ -105,8 +110,6 @@ public class CubeMover : MonoBehaviour
         var dotSecond = Vector3.Dot(wp_secondAxis - lastPos, currentMousePos - lastPos);
 
         if ((Input.mousePosition - lastPos).magnitude < DragThreshold_InPixels) return null;
-
-        Debug.Log(dotFirst + " | " + dotSecond);
 
         if (Mathf.Abs(dotFirst) > Mathf.Abs(dotSecond))
         {

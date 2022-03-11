@@ -5,7 +5,7 @@ using UnityEngine;
 public class RubiksCube : MonoBehaviour
 {
     public const int MAX_DEPTH = 1;
-    public const int size = 13;
+    public const int size = 3;
     public const float cubieSize = 1f;
 
     [SerializeField] private Cubie cubiePrefab;
