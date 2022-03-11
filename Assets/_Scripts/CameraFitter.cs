@@ -15,7 +15,7 @@ public class CameraFitter : MonoBehaviour
         _camera = this.GetComponent<Camera>();
     }
 
-    private void Update()
+    private void Start()
     {
         Fit();
     }

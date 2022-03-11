@@ -486,6 +486,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26385ba773e9243ceb24700516f0469d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rubiksCube: {fileID: 799123098}
+  _camera: {fileID: 963194227}
   layerMask:
     serializedVersion: 2
     m_Bits: 64

@@ -7,7 +7,7 @@ public class CubeMover : MonoBehaviour
     [SerializeField] private RubiksCube rubiksCube;
     [SerializeField] private float speed;
     private Cubie targetCubie;
-    private Vector3? axis;
+    private Axis? axis;
     private Coroutine moveCoroutine;
     public bool isMoving => moveCoroutine != null;
 
@@ -26,7 +26,7 @@ public class CubeMover : MonoBehaviour
         {
             if (targetCubie == null) return;
 
-            var moves = rubiksCube.GetMovables(targetCubie, GetAxis().Value);
+            var moves = GetMovables(targetCubie, axis.Value);
             MoveInfo moveInfo =  MoveInfo.Default;
             bool moved = false;
 
@@ -47,23 +47,110 @@ public class CubeMover : MonoBehaviour
         }
     }
 
-    private Axis? GetAxis()
+    private List<MoveInfo> GetMovables(Cubie origin, Axis axis)
     {
-        if (axis == null) return null;
+        var result = new List<MoveInfo>();
 
-        if (axis == this.transform.up) return Axis.Y;
+        if (axis == Axis.Y)
+        {
+            var move_0 = MoveInfo.Default;
+            move_0.axis = this.transform.right;
+            for (int y = 0; y < RubiksCube.size; y++)
+            {
+                for (int z = 0; z < RubiksCube.size; z++)
+                {
+                    var cubie = rubiksCube.cubies[origin.gridPosition.x, y, z];
 
-        if (axis == -this.transform.up) return Axis.Y;
+                    if (cubie == null) continue;
 
-        if (axis == this.transform.right) return Axis.X;
+                    move_0.cubies.Add(cubie);
+                }
+            }
+            result.Add(move_0);
 
-        if (axis == -this.transform.right) return Axis.X;
+            var move_1 = MoveInfo.Default;
+            move_1.axis = this.transform.forward;
+            for (int y = 0; y < RubiksCube.size; y++)
+            {
+                for (int x = 0; x < RubiksCube.size; x++)
+                {
+                    var cubie = rubiksCube.cubies[x, y, origin.gridPosition.z];
 
-        if (axis == -this.transform.forward) return Axis.Z;
+                    if (cubie == null) continue;
 
-        if (axis == this.transform.forward) return Axis.Z;
+                    move_1.cubies.Add(cubie);
+                }
+            }
+            result.Add(move_1);
+        }
 
-        return null;
+        else if (axis == Axis.X)
+        {
+            var move_0 = MoveInfo.Default;
+            move_0.axis = this.transform.up;
+            for (int x = 0; x < RubiksCube.size; x++)
+            {
+                for (int z = 0; z < RubiksCube.size; z++)
+                {
+                    var cubie = rubiksCube.cubies[x, origin.gridPosition.y, z];
+
+                    if (cubie == null) continue;
+
+                    move_0.cubies.Add(cubie);
+                }
+            }
+            result.Add(move_0);
+
+            var move_1 = MoveInfo.Default;
+            move_1.axis = this.transform.forward;
+            for (int x = 0; x < RubiksCube.size; x++)
+            {
+                for (int y = 0; y < RubiksCube.size; y++)
+                {
+                    var cubie = rubiksCube.cubies[x, y, origin.gridPosition.z];
+
+                    if (cubie == null) continue;
+
+                    move_1.cubies.Add(cubie);
+                }
+            }
+            result.Add(move_1);
+        }
+
+        else if (axis == Axis.Z)
+        {
+            var move_0 = MoveInfo.Default;
+            move_0.axis = this.transform.right;
+            for (int z = 0; z < RubiksCube.size; z++)
+            {
+                for (int y = 0; y < RubiksCube.size; y++)
+                {
+                    var cubie = rubiksCube.cubies[origin.gridPosition.x, y, z];
+
+                    if (cubie == null) continue;
+
+                    move_0.cubies.Add(cubie);
+                }
+            }
+            result.Add(move_0);
+
+            var move_1 = MoveInfo.Default;
+            move_1.axis = this.transform.up;
+            for (int z = 0; z < RubiksCube.size; z++)
+            {
+                for (int x = 0; x < RubiksCube.size; x++)
+                {
+                    var cubie = rubiksCube.cubies[x, origin.gridPosition.y, z];
+
+                    if (cubie == null) continue;
+
+                    move_1.cubies.Add(cubie);
+                }
+            }
+            result.Add(move_1);
+        }
+
+        return result;
     }
 
     private IEnumerator Move_Co(MoveInfo moveInfo, int dir)

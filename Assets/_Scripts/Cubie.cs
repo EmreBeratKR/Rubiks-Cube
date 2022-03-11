@@ -27,16 +27,6 @@ public class Cubie : MonoBehaviour
         var aprx = (this.transform.localPosition + RubiksCube.offset) / RubiksCube.cubieSize;
         return new Vector3Int(Mathf.RoundToInt(aprx.x), Mathf.RoundToInt(aprx.y), Mathf.RoundToInt(aprx.z));
     }
-
-    public void Colorize()
-    {
-        faces.top.ApplyColor(Face.ColorCode.YELLOW);
-        faces.bottom.ApplyColor(Face.ColorCode.WHITE);
-        faces.front.ApplyColor(Face.ColorCode.RED);
-        faces.back.ApplyColor(Face.ColorCode.ORANGE);
-        faces.right.ApplyColor(Face.ColorCode.GREEN);
-        faces.left.ApplyColor(Face.ColorCode.BLUE);
-    }
 }
 
 [System.Serializable]
