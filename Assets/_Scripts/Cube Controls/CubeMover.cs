@@ -4,21 +4,32 @@ using UnityEngine;
 
 public class CubeMover : MonoBehaviour
 {
+    public const float DragThreshold_InPixels = 50f;
+
     [SerializeField] private RubiksCube rubiksCube;
+    [SerializeField] private Camera _camera;
     [SerializeField] private float speed;
+    private Vector3 lastPos;
     private Cubie targetCubie;
-    private Axis? axis;
+    private RaycastHit? hit;
+    private Axis? normal;
     private Coroutine moveCoroutine;
     public bool isMoving => moveCoroutine != null;
 
-
+    [SerializeField] private Transform[] vectors;
     private void Update()
     {
-        if (isMoving) return;
+        if (isMoving)
+        {
+            lastPos = Input.mousePosition;
+            targetCubie = null;
+            return;
+        }
 
         if (Input.GetMouseButtonDown(0))
         {
-            targetCubie = CubieRaycaster.Instance.GetTarget(out axis);
+            lastPos = Input.mousePosition;
+            targetCubie = CubieRaycaster.Instance.GetTarget(out hit, out normal);
             return;
         }
 
@@ -26,35 +37,96 @@ public class CubeMover : MonoBehaviour
         {
             if (targetCubie == null) return;
 
-            var moves = GetMovables(targetCubie, axis.Value);
-            MoveInfo moveInfo =  MoveInfo.Default;
-            bool moved = false;
+            var rotAxis = rotationAxis;
 
-            if (Input.GetKeyDown(KeyCode.Z))
-            {
-                moveInfo = moves[0];
-                moved = true;
-            }
-            if (Input.GetKeyDown(KeyCode.X))
-            {
-                moveInfo = moves[1];
-                moved = true;
-            }
+            if (rotAxis == null) return;
 
-            if (!moved) return;
+            var _axis = CubieRaycaster.Instance.GetAxis(rotAxis.Value);
+
+            var moveInfo = GetMoveInfo(targetCubie, rotAxis.Value, _axis.Value);
             
-            moveCoroutine = StartCoroutine(Move_Co(moveInfo, Input.GetKey(KeyCode.LeftShift) ? -1 : 1));
+            moveCoroutine = StartCoroutine(Move_Co(moveInfo));
         }
     }
 
-    private List<MoveInfo> GetMovables(Cubie origin, Axis axis)
+    private Vector3? rotationAxis
     {
-        var result = new List<MoveInfo>();
+        get
+        {
+            if (normal == null) return null;
+
+            if (normal == Axis.X) return GetRotationAxis(rubiksCube.transform.up, rubiksCube.transform.forward);
+
+            if (normal == Axis.Y) return GetRotationAxis(rubiksCube.transform.right, rubiksCube.transform.forward);
+
+            if (normal == Axis.Z) return GetRotationAxis(rubiksCube.transform.right, rubiksCube.transform.up);
+
+            return null;
+        }
+    }
+
+    private bool IsReversed(Vector3 normal, Axis axis)
+    {
+        if (axis == Axis.X)
+        {
+            if (normal == -rubiksCube.transform.up) return true;
+
+            if (normal == rubiksCube.transform.forward) return true;
+        }
 
         if (axis == Axis.Y)
         {
-            var move_0 = MoveInfo.Default;
-            move_0.axis = this.transform.right;
+            if (normal == rubiksCube.transform.right) return true;
+
+            if (normal == -rubiksCube.transform.forward) return true;
+        }
+
+        if (axis == Axis.Z)
+        {
+            if (normal == -rubiksCube.transform.right) return true;
+
+            if (normal == rubiksCube.transform.up) return true;
+        }
+
+        return false;
+    }
+
+    private Vector3? GetRotationAxis(Vector3 first, Vector3 second)
+    {
+        var firstAxis = hit.Value.point + first;
+        var secondAxis = hit.Value.point + second;
+        
+        var wp_firstAxis = _camera.WorldToScreenPoint(firstAxis);
+        var wp_secondAxis = _camera.WorldToScreenPoint(secondAxis);
+
+        var currentMousePos = Input.mousePosition;
+
+        var dotFirst = Vector3.Dot(wp_firstAxis - lastPos, currentMousePos - lastPos);
+        var dotSecond = Vector3.Dot(wp_secondAxis - lastPos, currentMousePos - lastPos);
+
+        if ((Input.mousePosition - lastPos).magnitude < DragThreshold_InPixels) return null;
+
+        Debug.Log(dotFirst + " | " + dotSecond);
+
+        if (Mathf.Abs(dotFirst) > Mathf.Abs(dotSecond))
+        {
+            return second * (dotFirst > 0f ? 1f : -1f);
+        }
+        else
+        {
+            return first * (dotSecond > 0f ? 1f : -1f);
+        }
+    }
+
+    private MoveInfo GetMoveInfo(Cubie origin, Vector3 singedAxis, Axis axis)
+    {
+        var result = MoveInfo.Default;
+
+        result.axis = singedAxis;
+        result.isReversed = IsReversed(hit.Value.normal, axis);
+        
+        if (axis == Axis.X)
+        {
             for (int y = 0; y < RubiksCube.size; y++)
             {
                 for (int z = 0; z < RubiksCube.size; z++)
@@ -63,31 +135,13 @@ public class CubeMover : MonoBehaviour
 
                     if (cubie == null) continue;
 
-                    move_0.cubies.Add(cubie);
+                    result.cubies.Add(cubie);
                 }
             }
-            result.Add(move_0);
-
-            var move_1 = MoveInfo.Default;
-            move_1.axis = this.transform.forward;
-            for (int y = 0; y < RubiksCube.size; y++)
-            {
-                for (int x = 0; x < RubiksCube.size; x++)
-                {
-                    var cubie = rubiksCube.cubies[x, y, origin.gridPosition.z];
-
-                    if (cubie == null) continue;
-
-                    move_1.cubies.Add(cubie);
-                }
-            }
-            result.Add(move_1);
         }
 
-        else if (axis == Axis.X)
+        else if (axis == Axis.Y)
         {
-            var move_0 = MoveInfo.Default;
-            move_0.axis = this.transform.up;
             for (int x = 0; x < RubiksCube.size; x++)
             {
                 for (int z = 0; z < RubiksCube.size; z++)
@@ -96,64 +150,30 @@ public class CubeMover : MonoBehaviour
 
                     if (cubie == null) continue;
 
-                    move_0.cubies.Add(cubie);
+                    result.cubies.Add(cubie);
                 }
             }
-            result.Add(move_0);
-
-            var move_1 = MoveInfo.Default;
-            move_1.axis = this.transform.forward;
-            for (int x = 0; x < RubiksCube.size; x++)
-            {
-                for (int y = 0; y < RubiksCube.size; y++)
-                {
-                    var cubie = rubiksCube.cubies[x, y, origin.gridPosition.z];
-
-                    if (cubie == null) continue;
-
-                    move_1.cubies.Add(cubie);
-                }
-            }
-            result.Add(move_1);
         }
 
         else if (axis == Axis.Z)
         {
-            var move_0 = MoveInfo.Default;
-            move_0.axis = this.transform.right;
-            for (int z = 0; z < RubiksCube.size; z++)
+            for (int x = 0; x < RubiksCube.size; x++)
             {
                 for (int y = 0; y < RubiksCube.size; y++)
                 {
-                    var cubie = rubiksCube.cubies[origin.gridPosition.x, y, z];
+                    var cubie = rubiksCube.cubies[x, y, origin.gridPosition.z];
 
                     if (cubie == null) continue;
 
-                    move_0.cubies.Add(cubie);
+                    result.cubies.Add(cubie);
                 }
             }
-            result.Add(move_0);
-
-            var move_1 = MoveInfo.Default;
-            move_1.axis = this.transform.up;
-            for (int z = 0; z < RubiksCube.size; z++)
-            {
-                for (int x = 0; x < RubiksCube.size; x++)
-                {
-                    var cubie = rubiksCube.cubies[x, origin.gridPosition.y, z];
-
-                    if (cubie == null) continue;
-
-                    move_1.cubies.Add(cubie);
-                }
-            }
-            result.Add(move_1);
         }
 
         return result;
     }
 
-    private IEnumerator Move_Co(MoveInfo moveInfo, int dir)
+    private IEnumerator Move_Co(MoveInfo moveInfo)
     {
         float rotated = 0f;
         while (true)
@@ -167,13 +187,13 @@ public class CubeMover : MonoBehaviour
                 rotated = 0f;
                 foreach (var cubie in moveInfo.cubies)
                 {
-                    cubie.transform.RotateAround(rubiksCube.transform.position, moveInfo.axis, angle * dir);
+                    cubie.transform.RotateAround(rubiksCube.transform.position, moveInfo.axis, angle * (moveInfo.isReversed ? -1f : 1f));
                 }
                 break;
             }
             foreach (var cubie in moveInfo.cubies)
             {
-                cubie.transform.RotateAround(rubiksCube.transform.position, moveInfo.axis, angle * dir);
+                cubie.transform.RotateAround(rubiksCube.transform.position, moveInfo.axis, angle * (moveInfo.isReversed ? -1f : 1f));
             }
 
             yield return 0;
@@ -193,6 +213,7 @@ public enum Axis { X, Y, Z }
 
 public struct MoveInfo
 {
+    public bool isReversed;
     public Vector3 axis;
     public List<Cubie> cubies;
 
