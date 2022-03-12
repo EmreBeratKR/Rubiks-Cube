@@ -6,7 +6,7 @@ public class Face : MonoBehaviour
 {
     [SerializeField] private MeshRenderer meshRenderer;
 
-    public ColorCode colorCode { get; private set; }
+    [field: SerializeField] public ColorCode colorCode { get; private set; }
 
 
     public void ApplyColor(ColorCode colorCode)

@@ -208,6 +208,9 @@ public class CubeMover : MonoBehaviour
             rubiksCube.cubies[cubie.gridPosition.x, cubie.gridPosition.y, cubie.gridPosition.z] = cubie;
         }
 
+        yield return new WaitForFixedUpdate();
+        EventSystem.CubeSideRotated();
+
         moveCoroutine = null;
     }
 }

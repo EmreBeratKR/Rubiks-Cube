@@ -5,10 +5,11 @@ using UnityEngine;
 public class RubiksCube : MonoBehaviour
 {
     public const int MAX_DEPTH = 1;
-    public const int size = 3;
+    public const int size = 25;
     public const float cubieSize = 1f;
 
     [SerializeField] private Cubie cubiePrefab;
+    [SerializeField] private Transform cubiesParent;
     
     public static Vector3 offset => Vector3.one * (size-1) * cubieSize * 0.5f;
 
@@ -21,6 +22,8 @@ public class RubiksCube : MonoBehaviour
 
     private void Generate()
     {
+        CubeMap.Instance.Init();
+
         cubies = new Cubie[size, size, size];
 
         for (int x = 0; x < size; x++)
@@ -31,11 +34,11 @@ public class RubiksCube : MonoBehaviour
                 {
                     if (Depth(x, y, z) > MAX_DEPTH) continue;
 
-                    Cubie cubie = Instantiate(cubiePrefab, transform);
+                    Cubie cubie = Instantiate(cubiePrefab, cubiesParent);
                     cubie.transform.localPosition = new Vector3(x, y, z) * cubieSize - offset;
                     cubie.transform.localRotation = Quaternion.identity;
                     cubie.transform.localScale = Vector3.one * cubieSize;
-                    cubie.transform.parent = transform;
+                    cubie.transform.parent = cubiesParent;
                     cubie.name = $"Cubie ({x}, {y}, {z})";
                     cubies[x, y, z] = cubie;
                     cubie.SetPosition(x, y, z);
