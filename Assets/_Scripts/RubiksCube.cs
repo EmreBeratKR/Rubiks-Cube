@@ -16,6 +16,11 @@ public class RubiksCube : Scenegleton<RubiksCube>
     public int size;
 
 
+    private void Start()
+    {
+        Generate();
+    }
+
     private void OnEnable()
     {
         EventSystem.OnCubeSolved += OnCubeSolved;
@@ -35,12 +40,18 @@ public class RubiksCube : Scenegleton<RubiksCube>
 
     private void OnCubeSizeChanged(params int[] size)
     {
+        EventSystem.CubeGenerateStarted();
         this.size = size[0];
         Destruct();
         Generate();
     }
 
     private void Generate()
+    {
+        StartCoroutine(Generate_Co());
+    }
+
+    private IEnumerator Generate_Co()
     {
         cubiesParent = new GameObject("Cubies").transform;
         cubiesParent.parent = this.transform;
@@ -68,9 +79,23 @@ public class RubiksCube : Scenegleton<RubiksCube>
                     cubie.name = $"Cubie ({x}, {y}, {z})";
                     cubies[x, y, z] = cubie;
                     cubie.SetPosition(x, y, z);
+
+                    if (x != 0) Destroy(cubie.faces.left.gameObject);
+
+                    if (x != size-1) Destroy(cubie.faces.right.gameObject);
+
+                    if (y != 0) Destroy(cubie.faces.bottom.gameObject);
+
+                    if (y != size-1) Destroy(cubie.faces.top.gameObject);
+
+                    if (z != 0) Destroy(cubie.faces.front.gameObject);
+
+                    if (z != size-1) Destroy(cubie.faces.back.gameObject);
                 }
             }
+            yield return 0;
         }
+        EventSystem.CubeGenerated();
     }
 
     private void Destruct()

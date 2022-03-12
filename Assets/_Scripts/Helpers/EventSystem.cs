@@ -7,6 +7,8 @@ public static class EventSystem
     public delegate void IntParamsEvent(params int[] intParams);
     public delegate void FloatParamsEvent(params float[] floatParams);
 
+    public static event DefaultEvent OnCubeGenerateStarted;
+    public static event DefaultEvent OnCubeGenerated;
     public static event DefaultEvent OnCubeSideRotated;
     public static event DefaultEvent OnCubeSolved;
 
@@ -19,6 +21,9 @@ public static class EventSystem
     public static event FloatParamsEvent OnRotationSensivityChanged;
     public static event FloatParamsEvent OnZoomSensivityChanged;
 
+    public static void CubeGenerateStarted() => OnCubeGenerateStarted?.Invoke();
+
+    public static void CubeGenerated() => OnCubeGenerated?.Invoke();
 
     public static void CubeSideRotated() => OnCubeSideRotated?.Invoke();
 
