@@ -13,8 +13,6 @@ public class CubeMover : MonoBehaviour
     private Cubie targetCubie;
     private RaycastHit? hit;
     private Axis? normal;
-    private Coroutine moveCoroutine;
-    public bool isMoving => moveCoroutine != null;
 
     private Vector3? rotationAxis
     {
@@ -33,14 +31,29 @@ public class CubeMover : MonoBehaviour
     }
 
 
+    private void OnEnable()
+    {
+        EventSystem.OnAnimationSpeedChanged += UpdateAnimationSpeed;
+        EventSystem.OnNoAnimationToggled += UpdateNoAnimation;
+    }
+
+    private void OnDisable()
+    {
+        EventSystem.OnAnimationSpeedChanged -= UpdateAnimationSpeed;
+        EventSystem.OnNoAnimationToggled -= UpdateNoAnimation;
+    }
+
     private void Update()
     {
         HandleMovement();
     }
 
+    public bool isMoving => moveCoroutine != null;
+    private bool canMove => !isMoving && InputChecker.Instance.isEnabled;
+
     private void HandleMovement()
     {
-        if (isMoving)
+        if (!canMove)
         {
             lastPos = Input.mousePosition;
             targetCubie = null;
@@ -176,18 +189,31 @@ public class CubeMover : MonoBehaviour
         return result;
     }
 
+    private void UpdateAnimationSpeed(params float[] args)
+    {
+        this.speed = args[0];
+    }
+
+    private void UpdateNoAnimation(params bool[] args)
+    {
+        this.noAnim = args[0];
+    }
+
+    private Coroutine moveCoroutine;
+    private bool noAnim;
+
     private IEnumerator Move_Co(MoveInfo moveInfo)
     {
         float rotated = 0f;
         while (true)
         {    
-            float angle = speed * Time.deltaTime;
+            float angle = noAnim ? 90f : speed * Time.deltaTime;
             float lastRotated = rotated;
             rotated += angle;
             if (rotated >= 90f)
             {
                 angle = 90f - lastRotated;
-                rotated = 0f;
+                rotated = 90f;
                 foreach (var cubie in moveInfo.cubies)
                 {
                     cubie.transform.RotateAround(rubiksCube.transform.position, moveInfo.axis, angle * (moveInfo.isReversed ? -1f : 1f));
