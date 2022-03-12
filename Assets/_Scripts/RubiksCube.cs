@@ -2,26 +2,52 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RubiksCube : MonoBehaviour
+public class RubiksCube : Scenegleton<RubiksCube>
 {
     public const int MAX_DEPTH = 1;
-    public const int size = 25;
     public const float cubieSize = 1f;
 
     [SerializeField] private Cubie cubiePrefab;
-    [SerializeField] private Transform cubiesParent;
+    private Transform cubiesParent;
     
-    public static Vector3 offset => Vector3.one * (size-1) * cubieSize * 0.5f;
+    public static Vector3 offset => Vector3.one * (RubiksCube.Instance.size-1) * cubieSize * 0.5f;
 
     public Cubie[,,] cubies;
+    public int size;
 
-    private void Start()
+
+    private void OnEnable()
     {
+        EventSystem.OnCubeSolved += OnCubeSolved;
+        EventSystem.OnCubeSizeChanged += OnCubeSizeChanged;
+    }
+
+    private void OnDisable()
+    {
+        EventSystem.OnCubeSolved -= OnCubeSolved;
+        EventSystem.OnCubeSizeChanged -= OnCubeSizeChanged;
+    }
+
+    private void OnCubeSolved()
+    {
+        Debug.Log("Cube solved!");
+    }
+
+    private void OnCubeSizeChanged(params int[] size)
+    {
+        this.size = size[0];
+        Destruct();
         Generate();
     }
 
     private void Generate()
     {
+        cubiesParent = new GameObject("Cubies").transform;
+        cubiesParent.parent = this.transform;
+        cubiesParent.localPosition = Vector3.zero;
+        cubiesParent.localEulerAngles = Vector3.zero;
+        cubiesParent.localScale = Vector3.one;
+
         CubeMap.Instance.Init();
 
         cubies = new Cubie[size, size, size];
@@ -45,6 +71,14 @@ public class RubiksCube : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void Destruct()
+    {
+        if (cubiesParent == null) return;
+
+        Destroy(cubiesParent.gameObject);
+        cubiesParent = null;
     }
 
     private int Depth(int x, int y, int z)

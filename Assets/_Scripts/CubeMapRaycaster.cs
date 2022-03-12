@@ -30,7 +30,7 @@ public class CubeMapRaycaster : MonoBehaviour
         {
             var result = new List<Face.ColorCode>();
 
-            float distance = (RubiksCube.size - 1) * 0.5f;
+            float distance = (RubiksCube.Instance.size - 1) * 0.5f;
 
             for (float i = -distance; i <= distance; i++)
             {

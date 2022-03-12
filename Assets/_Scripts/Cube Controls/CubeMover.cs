@@ -130,9 +130,9 @@ public class CubeMover : MonoBehaviour
         
         if (axis == Axis.X)
         {
-            for (int y = 0; y < RubiksCube.size; y++)
+            for (int y = 0; y < rubiksCube.size; y++)
             {
-                for (int z = 0; z < RubiksCube.size; z++)
+                for (int z = 0; z < rubiksCube.size; z++)
                 {
                     var cubie = rubiksCube.cubies[origin.gridPosition.x, y, z];
 
@@ -145,9 +145,9 @@ public class CubeMover : MonoBehaviour
 
         else if (axis == Axis.Y)
         {
-            for (int x = 0; x < RubiksCube.size; x++)
+            for (int x = 0; x < rubiksCube.size; x++)
             {
-                for (int z = 0; z < RubiksCube.size; z++)
+                for (int z = 0; z < rubiksCube.size; z++)
                 {
                     var cubie = rubiksCube.cubies[x, origin.gridPosition.y, z];
 
@@ -160,9 +160,9 @@ public class CubeMover : MonoBehaviour
 
         else if (axis == Axis.Z)
         {
-            for (int x = 0; x < RubiksCube.size; x++)
+            for (int x = 0; x < rubiksCube.size; x++)
             {
-                for (int y = 0; y < RubiksCube.size; y++)
+                for (int y = 0; y < rubiksCube.size; y++)
                 {
                     var cubie = rubiksCube.cubies[x, y, origin.gridPosition.z];
 

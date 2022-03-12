@@ -40,12 +40,12 @@ public class CubeMap : Scenegleton<CubeMap>
 
     public void Init()
     {
-        top.transform.position = top.transform.position.normalized * RubiksCube.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
-        bottom.transform.position = bottom.transform.position.normalized * RubiksCube.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
-        right.transform.position = right.transform.position.normalized * RubiksCube.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
-        left.transform.position = left.transform.position.normalized * RubiksCube.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
-        front.transform.position = front.transform.position.normalized * RubiksCube.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
-        back.transform.position = back.transform.position.normalized * RubiksCube.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
+        top.transform.position = top.transform.position.normalized * RubiksCube.Instance.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
+        bottom.transform.position = bottom.transform.position.normalized * RubiksCube.Instance.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
+        right.transform.position = right.transform.position.normalized * RubiksCube.Instance.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
+        left.transform.position = left.transform.position.normalized * RubiksCube.Instance.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
+        front.transform.position = front.transform.position.normalized * RubiksCube.Instance.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
+        back.transform.position = back.transform.position.normalized * RubiksCube.Instance.size * RubiksCube.cubieSize * RAYCAST_OFFSET_RATE;
     }
 
     private void CheckCube()

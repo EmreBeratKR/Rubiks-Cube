@@ -15,13 +15,23 @@ public class CameraFitter : MonoBehaviour
         _camera = this.GetComponent<Camera>();
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        Fit();
+        EventSystem.OnCubeSizeChanged += OnCubeSizeChanged;
     }
 
-    private void Fit()
+    private void OnDisable()
     {
-        _camera.transform.position = Vector3.back * (RubiksCube.size * RubiksCube.cubieSize * shrinkness);
+        EventSystem.OnCubeSizeChanged -= OnCubeSizeChanged;
+    }
+
+    private void OnCubeSizeChanged(params int[] size)
+    {
+        Fit(size[0]);
+    }
+
+    private void Fit(int size)
+    {
+        _camera.transform.position = Vector3.back * (size * RubiksCube.cubieSize * shrinkness);
     }
 }
