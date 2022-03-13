@@ -14,7 +14,7 @@ public class CubeMover : MonoBehaviour
     private RaycastHit? hit;
     private Axis? normal;
 
-    private Vector3? rotationAxis
+    public Vector3? rotationAxis
     {
         get
         {
@@ -30,26 +30,67 @@ public class CubeMover : MonoBehaviour
         }
     }
 
+    public Vector3 LocalAxis(Axis axis)
+    {
+        return axis == Axis.X ? rubiksCube.transform.right :
+            axis == Axis.Y ? rubiksCube.transform.up : rubiksCube.transform.forward;
+    }
+
 
     private void OnEnable()
     {
         EventSystem.OnAnimationSpeedChanged += UpdateAnimationSpeed;
         EventSystem.OnNoAnimationToggled += UpdateNoAnimation;
+        EventSystem.OnCubeGenerateStarted += CancelShuffle;
     }
 
     private void OnDisable()
     {
         EventSystem.OnAnimationSpeedChanged -= UpdateAnimationSpeed;
         EventSystem.OnNoAnimationToggled -= UpdateNoAnimation;
+        EventSystem.OnCubeGenerateStarted -= CancelShuffle;
     }
 
     private void Update()
     {
         HandleMovement();
     }
+    
+    public void Shuffle()
+    {
+        if (isShuffling) return;
+
+        EventSystem.CubeShuffleStarted();
+        shuffleCoroutine = StartCoroutine(Shuffle_Co());
+    }
+
+    private void CancelShuffle()
+    {
+        StopAllCoroutines();
+        shuffleCoroutine = null;
+        moveCoroutine = null;
+    }
+
+    private Coroutine shuffleCoroutine;
+    private bool isShuffling => shuffleCoroutine != null;
+
+    public IEnumerator Shuffle_Co()
+    {
+        var sequence = CubeShuffler.shuffleSequence;
+        foreach (var move in sequence)
+        {
+            var moveInfo = GetMoveInfo(move.origin, Vector3.zero, move.axis ,true);
+            moveInfo.axisEnum = move.axis;
+            moveInfo.isReversed = move.isReversed;
+            moveInfo.isShuffle = true;
+            yield return StartCoroutine(Move_Co(moveInfo));
+        }
+        shuffleCoroutine = null;
+        EventSystem.CubeShuffled();
+    }
 
     public bool isMoving => moveCoroutine != null;
-    private bool canMove => !isMoving && InputChecker.Instance.isEnabled;
+    private bool canMove => !isMoving && InputChecker.Instance.isEnabled && !isShuffling && CubeTimer.Instance.isStarted;
 
     private void HandleMovement()
     {
@@ -134,12 +175,12 @@ public class CubeMover : MonoBehaviour
         }
     }
 
-    private MoveInfo GetMoveInfo(Cubie origin, Vector3 singedAxis, Axis axis)
+    private MoveInfo GetMoveInfo(Cubie origin, Vector3 signedAxis, Axis axis, bool isShuffle = false)
     {
         var result = MoveInfo.Default;
 
-        result.axis = singedAxis;
-        result.isReversed = IsReversed(hit.Value.normal, axis);
+        result.axis = signedAxis;
+        if (!isShuffle) result.isReversed = IsReversed(hit.Value.normal, axis);
         
         if (axis == Axis.X)
         {
@@ -207,7 +248,9 @@ public class CubeMover : MonoBehaviour
         float rotated = 0f;
         while (true)
         {    
-            float angle = noAnim ? 90f : speed * Time.deltaTime;
+            var axis = moveInfo.isShuffle ? LocalAxis(moveInfo.axisEnum) : moveInfo.axis;
+
+            float angle = noAnim ? 90f : Time.deltaTime * (moveInfo.isShuffle ? CubeShuffler.SHUFFLE_SPEED : speed);
             float lastRotated = rotated;
             rotated += angle;
             if (rotated >= 90f)
@@ -216,13 +259,13 @@ public class CubeMover : MonoBehaviour
                 rotated = 90f;
                 foreach (var cubie in moveInfo.cubies)
                 {
-                    cubie.transform.RotateAround(rubiksCube.transform.position, moveInfo.axis, angle * (moveInfo.isReversed ? -1f : 1f));
+                    cubie.transform.RotateAround(rubiksCube.transform.position, axis, angle * (moveInfo.isReversed ? -1f : 1f));
                 }
                 break;
             }
             foreach (var cubie in moveInfo.cubies)
             {
-                cubie.transform.RotateAround(rubiksCube.transform.position, moveInfo.axis, angle * (moveInfo.isReversed ? -1f : 1f));
+                cubie.transform.RotateAround(rubiksCube.transform.position, axis, angle * (moveInfo.isReversed ? -1f : 1f));
             }
 
             yield return 0;
@@ -245,13 +288,18 @@ public enum Axis { X, Y, Z }
 
 public struct MoveInfo
 {
+    public bool isShuffle;
     public bool isReversed;
     public Vector3 axis;
+    public Axis axisEnum;
     public List<Cubie> cubies;
 
     public static MoveInfo Default => new MoveInfo
     {
+        isShuffle = false,
+        isReversed = false,
         axis = Vector3.zero,
+        axisEnum = Axis.X,
         cubies = new List<Cubie>()
     };
 }

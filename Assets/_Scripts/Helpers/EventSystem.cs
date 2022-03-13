@@ -9,6 +9,8 @@ public static class EventSystem
 
     public static event DefaultEvent OnCubeGenerateStarted;
     public static event DefaultEvent OnCubeGenerated;
+    public static event DefaultEvent OnCubeShuffleStarted;
+    public static event DefaultEvent OnCubeShuffled;
     public static event DefaultEvent OnCubeSideRotated;
     public static event DefaultEvent OnCubeSolved;
 
@@ -24,6 +26,10 @@ public static class EventSystem
     public static void CubeGenerateStarted() => OnCubeGenerateStarted?.Invoke();
 
     public static void CubeGenerated() => OnCubeGenerated?.Invoke();
+
+    public static void CubeShuffleStarted() => OnCubeShuffleStarted?.Invoke();
+
+    public static void CubeShuffled() => OnCubeShuffled?.Invoke();
 
     public static void CubeSideRotated() => OnCubeSideRotated?.Invoke();
 

@@ -20,6 +20,11 @@ public class CameraFitter : MonoBehaviour
         _camera = this.GetComponent<Camera>();
     }
 
+    private void Start()
+    {
+        Fit();
+    }
+
     private void OnEnable()
     {
         EventSystem.OnCubeSizeChanged += OnCubeSizeChanged;

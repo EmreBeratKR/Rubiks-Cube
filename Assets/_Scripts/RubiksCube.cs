@@ -12,6 +12,9 @@ public class RubiksCube : Scenegleton<RubiksCube>
     
     public static Vector3 offset => Vector3.one * (RubiksCube.Instance.size-1) * cubieSize * 0.5f;
 
+    private List<Cubie> cubiesList;
+    public static Cubie randomCubie => RubiksCube.Instance.cubiesList[Random.Range(0, RubiksCube.Instance.cubiesList.Count)];
+
     public Cubie[,,] cubies;
     public int size;
 
@@ -23,27 +26,25 @@ public class RubiksCube : Scenegleton<RubiksCube>
 
     private void OnEnable()
     {
-        EventSystem.OnCubeSolved += OnCubeSolved;
         EventSystem.OnCubeSizeChanged += OnCubeSizeChanged;
     }
 
     private void OnDisable()
     {
-        EventSystem.OnCubeSolved -= OnCubeSolved;
         EventSystem.OnCubeSizeChanged -= OnCubeSizeChanged;
-    }
-
-    private void OnCubeSolved()
-    {
-        Debug.Log("Cube solved!");
     }
 
     private void OnCubeSizeChanged(params int[] size)
     {
         EventSystem.CubeGenerateStarted();
-        this.size = size[0];
+        if (size.Length != 0) this.size = size[0];
         Destruct();
         Generate();
+    }
+
+    public void ResetCube()
+    {
+        OnCubeSizeChanged();
     }
 
     private void Generate()
@@ -61,6 +62,7 @@ public class RubiksCube : Scenegleton<RubiksCube>
 
         CubeMap.Instance.Init();
 
+        cubiesList = new List<Cubie>();
         cubies = new Cubie[size, size, size];
 
         for (int x = 0; x < size; x++)
@@ -79,6 +81,7 @@ public class RubiksCube : Scenegleton<RubiksCube>
                     cubie.name = $"Cubie ({x}, {y}, {z})";
                     cubies[x, y, z] = cubie;
                     cubie.SetPosition(x, y, z);
+                    cubiesList.Add(cubie);
 
                     if (x != 0) Destroy(cubie.faces.left.gameObject);
 
