@@ -36,15 +36,26 @@ public class RubiksCube : Scenegleton<RubiksCube>
 
     private void OnCubeSizeChanged(params int[] size)
     {
-        EventSystem.CubeGenerateStarted();
         if (size.Length != 0) this.size = size[0];
-        Destruct();
-        Generate();
+        ReGenerate();
     }
 
     public void ResetCube()
     {
         OnCubeSizeChanged();
+    }
+
+    private void ReGenerate()
+    {
+        StartCoroutine(ReGenerate_Co());
+    }
+    
+    private IEnumerator ReGenerate_Co()
+    {
+        EventSystem.CubeGenerateStarted();
+        yield return 0;
+        Destruct();
+        Generate();
     }
 
     private void Generate()
