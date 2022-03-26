@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class CubeShuffler
 {
-    public const int MOVE_PER_SIZE = 15;
+    public const int MOVE_PER_SIZE = 10;
     public const float SHUFFLE_SPEED = 1500f;
 
     public static List<CubeMove> shuffleSequence

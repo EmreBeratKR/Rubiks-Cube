@@ -93,6 +93,7 @@ public class RubiksCube : Scenegleton<RubiksCube>
                     cubies[x, y, z] = cubie;
                     cubie.SetPosition(x, y, z);
                     cubiesList.Add(cubie);
+                    cubie.SetType(x, y, z, size);
 
                     if (x != 0) Destroy(cubie.faces.left.gameObject);
 
